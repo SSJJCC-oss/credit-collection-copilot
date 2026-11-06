@@ -86,14 +86,18 @@ system's own tables keep their original structure.
 
 ## C. Decisions for later phases
 
-**C1. Order decision rules (draft values, Phase 3).** 🔜
+**C1. Order decision rules (draft values, Phase 3).** ✅
 - HOLD if (money owed + this order) > credit limit, or any bill > 90 days overdue.
 - REVIEW if this order > 2× the shop's usual order, or any bill 61–90 days overdue.
 - APPROVE otherwise.
 - All numbers become settings so a manager can tune them.
+- REVIEW if the shop pays on average more than 45 days late (last 12 months).
 
-**C2. "Going quiet" rule (draft, Phase 3).** 🔜
-- Flag a shop if the days since its last order are more than 3× its usual gap between orders, and at least 21 days.
+**C2. "Going quiet" rule.** ✅
+- A shop is quiet if days since its last order > 4× its usual gap (median of its last 20 orders) and ≥ 45 days.
+- Needs at least 5 orders to know a shop's rhythm. Cancelled orders are ignored.
+- Tuned on the demo data: finds all 28 shops the answer key marks as churned, plus 3 other genuinely quiet shops.
+- Where: constants at the top of `copilot/quiet_shops.py`.
 
 **C3. Reminders are never sent automatically.** 🔜
 - Every draft needs a person to approve it. `DRY_RUN=true` by default: approved reminders are only logged.

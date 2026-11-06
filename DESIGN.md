@@ -98,6 +98,7 @@ Checked in order; every rule that fires is listed as a reason.
 | Any bill more than 90 days overdue | HOLD |
 | Any bill 61–90 days overdue | REVIEW |
 | This order > 2× the shop's usual order | REVIEW |
+| Pays on average > 45 days late (last 12 months) | REVIEW |
 | None of the above | APPROVE |
 
 The strongest result wins (HOLD > REVIEW > APPROVE). Thresholds are settings.
