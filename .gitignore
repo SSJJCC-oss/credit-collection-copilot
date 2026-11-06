@@ -1,5 +1,5 @@
 # Python virtual environment - huge, and anyone can recreate it
-.venvbillcrm*/
+.venv*/
 
 # Python cache files - created automatically when scripts run
 __pycache__/
