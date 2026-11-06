@@ -103,9 +103,10 @@ system's own tables keep their original structure.
 - Every draft needs a person to approve it. `DRY_RUN=true` by default: approved reminders are only logged.
 - Email/SMS only, never WhatsApp. Shops with no email or phone are flagged instead.
 
-**C4. "Ask your data" safety.** 🔜
+**C4. "Ask your data" safety.** ✅
 - Read-only database connection; one `SELECT` statement only; allow-listed tables and columns; row limit.
 - `synthetic_notes` is never on the allow-list.
+- Personal contact details (customers.phone, customers.email, users.email) and the database views are not on the allow-list.
 
 **C5. The AI model name is a setting in `.env`.** 🔜
 - Automatic retries on 429 (rate limit) and 503 (busy) errors.  
