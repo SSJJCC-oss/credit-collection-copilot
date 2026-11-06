@@ -1,0 +1,15 @@
+# Python virtual environment - huge, and anyone can recreate it
+.venvbillcrm*/
+
+# Python cache files - created automatically when scripts run
+__pycache__/
+*.pyc
+
+# Secrets - your Gemini API key will live here later. NEVER upload it.
+.env
+
+# Generated database - seed_demo.py rebuilds it, so no need to store it
+data/crm_copilot_demo.db
+
+# Personal notes
+*.docx
