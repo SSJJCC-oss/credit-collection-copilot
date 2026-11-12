@@ -99,7 +99,7 @@ system's own tables keep their original structure.
 - Tuned on the demo data: finds all 28 shops the answer key marks as churned, plus 3 other genuinely quiet shops.
 - Where: constants at the top of `copilot/quiet_shops.py`.
 
-**C3. Reminders are never sent automatically.** 🔜
+**C3. Reminders are never sent automatically.** ✅
 - Every draft needs a person to approve it. `DRY_RUN=true` by default: approved reminders are only logged.
 - Email/SMS only, never WhatsApp. Shops with no email or phone are flagged instead.
 

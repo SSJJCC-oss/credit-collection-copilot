@@ -6,6 +6,8 @@ REVIEW_OVERDUE_DAYS = 60        # any bill later than this (but not 90+) -> REVI
 REVIEW_SIZE_MULTIPLIER = 2.0    # order bigger than 2x the usual order -> REVIEW
 REVIEW_AVG_LATE_DAYS = 45       # pays on average more than 45 days late -> REVIEW
 
+RULES_VERSION = "2026-11-v1"    # change this whenever a rule or threshold changes
+
 STRENGTH = {"APPROVE": 0, "REVIEW": 1, "HOLD": 2}
 
 

@@ -13,3 +13,5 @@ data/crm_copilot_demo.db
 
 # Personal notes
 *.docx
+
+data/copilot.db
