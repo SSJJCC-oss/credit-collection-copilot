@@ -1,35 +1,34 @@
-"""agent.py - the copilot's agents. ADK looks for a variable called root_agent in this file."""
+"""agent.py - the copilot's router. ADK looks for a variable called root_agent in this file."""
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))   # let Python find the copilot package
 
 from google.adk.agents import Agent  # noqa: E402
+from google.adk.tools.agent_tool import AgentTool  # noqa: E402
 
-from copilot import tools  # noqa: E402
 from .model import make_model  # noqa: E402
+from .specialists import briefing_agent, collections_agent, credit_agent, data_qa_agent  # noqa: E402
 
-credit_agent = Agent(
-    name="credit_agent",
+root_agent = Agent(
+    name="copilot_router",
     model=make_model(),
-    description="Reviews orders waiting for approval and explains a shop's credit position.",
+    description="Credit & Collections Copilot: routes each request to the right specialist.",
     instruction="""
-You are the credit control assistant for a UAE wholesale distributor that sells to shops on credit.
-You help office staff decide on orders that are waiting for approval.
-
+You are the Credit & Collections Copilot for a UAE wholesale distributor that sells to shops on credit.
+You do not answer from your own knowledge. You pass each request to the right specialist tool:
+- briefing_agent: the daily briefing, overall position, who to chase, over-limit shops, uncleared
+  cheques, shops that have stopped ordering.
+- credit_agent: orders waiting for approval, whether to approve an order, one shop's credit position.
+- collections_agent: a shop's overdue invoices, drafting payment reminders, the reminder approval queue.
+- data_qa_agent: any other question about shops, orders, payments, products, cities or sales.
 How to work:
-- To judge an order, ALWAYS call review_order. Its decision (APPROVE, REVIEW or HOLD) comes from the
-  company's fixed credit rules. Report it exactly. Never change it or make your own decision.
-- To see which orders are waiting, call list_pending_orders.
-- For questions about one shop, call get_customer_overview with the shop's name.
-- Only use numbers that a tool returned. Never guess or invent figures, dates or invoice numbers.
-- Show amounts with the currency from the tool result (e.g. AED 64,301.22).
-- Explain decisions in plain, polite English: first the decision, then each reason with its numbers.
-- If a tool returns an "error", explain it simply. If a shop name matches several shops,
-  list them and ask which one is meant.
-- Dates are "as of" the as_of date in the tool result, not today's calendar date.
+- Pass the user's request to the specialist in clear words, including any shop name or order number.
+- If a request has several parts, call each specialist needed, then combine the answers.
+- Give the user the specialist's answer faithfully. Do not change any number, decision or invoice number.
+- Nothing is ever approved or sent by you or the specialists. Approving reminders is done by a person.
+- If the request is unrelated to credit, collections or the business data, say politely what you can help with.
 """,
-    tools=[tools.list_pending_orders, tools.review_order, tools.get_customer_overview],
+    tools=[AgentTool(agent=briefing_agent), AgentTool(agent=credit_agent),
+           AgentTool(agent=collections_agent), AgentTool(agent=data_qa_agent)],
 )
-
-root_agent = credit_agent      # for now the Credit agent is the whole copilot; step 5.3 adds the router
