@@ -57,7 +57,6 @@
       </div>
     </section>
 
-    <!-- Filled in by the next steps -->
     <!-- Feature 2: orders waiting for approval -->
     <section id="orders" class="section hidden">
       <div class="cards">
@@ -124,7 +123,26 @@
         </div>
       </div>
     </section>
-    <section id="chat" class="section hidden"><div class="panel">Ask the copilot: coming in step 6.4.</div></section>
+
+    <!-- Feature 4 (and everything else): chat with the multi-agent copilot -->
+    <section id="chat" class="section hidden">
+      <div class="panel chat-panel">
+        <h2>Ask the copilot</h2>
+        <div class="suggestions">
+          <button class="suggestion">Give me today's briefing</button>
+          <button class="suggestion">Should we approve SO-026777?</button>
+          <button class="suggestion">Which shops in Sharjah are more than 60 days overdue?</button>
+          <button class="suggestion">Draft a reminder for Golden Palm Catering</button>
+        </div>
+        <div id="chat-log" class="chat-log">
+          <div class="msg bot">Ask about the briefing, an order, a shop, reminders, or any question about the data.</div>
+        </div>
+        <form id="chat-form" class="form-row">
+          <input id="chat-input" placeholder="Type a question…" autocomplete="off" required>
+          <button type="submit" id="chat-send">Send</button>
+        </form>
+      </div>
+    </section>
 
     <p id="error" class="error hidden"></p>
   </main>

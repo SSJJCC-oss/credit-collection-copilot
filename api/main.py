@@ -149,6 +149,51 @@ def audit(limit: int = 50) -> dict:
     store.close()
     return {"count": len(entries), "entries": entries}
 
+# ------------------------------------------------------------------- chat with the agents (6.4)
+from google.adk.runners import InMemoryRunner  # noqa: E402
+from google.genai import types  # noqa: E402
+from pydantic import Field  # noqa: E402
+
+from agents.copilot_agent.agent import root_agent  # noqa: E402
+from cli.chat import audit_since, last_audit_id  # noqa: E402
+
+CHAT_APP = "credit_collections_copilot"
+CHAT_USER = "dashboard"
+runner = InMemoryRunner(agent=root_agent, app_name=CHAT_APP)
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
+    session_id: str | None = None        # send back the id you received to continue the same conversation
+
+
+@app.post("/api/chat")
+async def chat(request: ChatRequest) -> dict:
+    """Ask the multi-agent copilot a question in plain English. Returns its answer and what it used."""
+    session = None
+    if request.session_id:
+        session = await runner.session_service.get_session(
+            app_name=CHAT_APP, user_id=CHAT_USER, session_id=request.session_id)
+    if session is None:
+        session = await runner.session_service.create_session(app_name=CHAT_APP, user_id=CHAT_USER)
+
+    store = connect_store()
+    before = last_audit_id(store)
+    message = types.Content(role="user", parts=[types.Part(text=request.message)])
+    answer, specialists = "", []
+    try:
+        async for event in runner.run_async(user_id=CHAT_USER, session_id=session.id, new_message=message):
+            specialists += [call.name for call in event.get_function_calls()]
+            if event.is_final_response() and event.content and event.content.parts:
+                answer = "".join(p.text for p in event.content.parts if p.text and not p.thought)
+        tools_used = [{"tool": e["action"], "ok": bool(e["ok"]), "ms": e["duration_ms"]}
+                      for e in audit_since(store, before)]
+    except Exception as error:          # e.g. Google login expired or the AI service is unavailable
+        raise HTTPException(status_code=502, detail=f"The AI service could not answer: {error}")
+    finally:
+        store.close()
+    return {"session_id": session.id, "answer": answer, "specialists": specialists, "tools_used": tools_used}
+
 # ---------------------------------------------------------------------- the dashboard page
 # Serve the files in web/ (index.html, styles.css, app.js) at http://127.0.0.1:8001/
 # This line must stay LAST, so the /api/... routes above are matched first.

@@ -196,6 +196,63 @@ async function decide(approve) {
   }
 }
 
+// ------------------------------------------------------------------- Chat (6.4)
+
+let chatSessionId = null;      // the server's id for this conversation, so follow-up questions have context
+
+// Turn the AI's answer (simple Markdown) into safe HTML: **bold**, bullet lists and line breaks.
+function formatAnswer(text) {
+  const lines = escapeHtml(text).split("\n");
+  let html = "", inList = false;
+  for (const raw of lines) {
+    const line = raw.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+    const bullet = line.match(/^\s*[-*•]\s+(.*)/);
+    if (bullet) {
+      if (!inList) { html += "<ul>"; inList = true; }
+      html += `<li>${bullet[1]}</li>`;
+    } else {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += line.trim() ? `${line}<br>` : "<br>";
+    }
+  }
+  return html + (inList ? "</ul>" : "");
+}
+
+function addMessage(kind, html) {
+  const log = document.getElementById("chat-log");
+  const div = document.createElement("div");
+  div.className = `msg ${kind}`;
+  div.innerHTML = html;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;          // keep the newest message in view
+  return div;
+}
+
+async function sendChat(text) {
+  const input = document.getElementById("chat-input");
+  const send = document.getElementById("chat-send");
+  addMessage("user", escapeHtml(text));
+  input.value = "";
+  send.disabled = true;
+  const thinking = addMessage("bot", "Thinking…");
+  try {
+    const r = await postJSON("/api/chat", { message: text, session_id: chatSessionId });
+    chatSessionId = r.session_id;
+    const tools = r.tools_used.map(t => `${t.tool}${t.ok ? "" : " (refused)"}`).join(", ");
+    const used = r.specialists.length
+      ? `<div class="used">Answered by ${escapeHtml(r.specialists.join(", "))}${tools ? ` · tools: ${escapeHtml(tools)}` : ""}</div>`
+      : "";
+    thinking.innerHTML = formatAnswer(r.answer || "(no answer)") + used;
+    loadDrafts();                              // a reminder drafted in the chat appears in the queue straight away
+  } catch (error) {
+    thinking.className = "msg error";
+    thinking.textContent = error.message;
+  } finally {
+    send.disabled = false;
+    input.focus();
+  }
+}
+
 // Sidebar: show one section at a time, based on the part of the address after '#'.
 function showSection() {
   const name = (location.hash || "#briefing").slice(1);
@@ -210,6 +267,12 @@ async function start() {
   document.getElementById("draft-filter").addEventListener("change", loadDrafts);
   document.getElementById("approve-btn").addEventListener("click", () => decide(true));
   document.getElementById("reject-btn").addEventListener("click", () => decide(false));
+    document.getElementById("chat-form").addEventListener("submit", event => {
+    event.preventDefault();
+    sendChat(document.getElementById("chat-input").value.trim());
+  });
+  document.querySelectorAll(".suggestion").forEach(button =>
+    button.addEventListener("click", () => sendChat(button.textContent)));
   try { document.getElementById("decided-by").value = localStorage.getItem("approverName") || ""; } catch (e) { /* ignore */ }
   try {
     await loadStatus();

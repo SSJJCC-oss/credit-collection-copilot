@@ -70,3 +70,49 @@ def test_dashboard_page_is_served(client):
     assert "Credit &amp; Collections Copilot" in page.text
     assert client.get("/app.js").status_code == 200
     assert client.get("/api/health").json()["status"] == "ok"    # API routes still work
+
+# ---- /api/chat: the real agents need Gemini, so these tests swap in a fake runner ----
+
+from google.adk.events import Event  # noqa: E402
+from google.adk.sessions import InMemorySessionService  # noqa: E402
+from google.genai import types  # noqa: E402
+
+import api.main  # noqa: E402
+from copilot import tools  # noqa: E402
+
+
+class FakeRunner:
+    """Behaves like ADK's runner: the router 'calls' credit_agent, a real tool runs, then it answers."""
+    def __init__(self):
+        self.session_service = InMemorySessionService()
+
+    async def run_async(self, user_id, session_id, new_message):
+        call = types.Part(function_call=types.FunctionCall(name="credit_agent", args={"request": "SO-026777"}))
+        yield Event(author="copilot_router", content=types.Content(role="model", parts=[call]))
+        tools.review_order("SO-026777")                      # writes a real audit-log line
+        answer = types.Part(text="Decision: HOLD.")
+        yield Event(author="copilot_router", content=types.Content(role="model", parts=[answer]))
+
+
+@pytest.fixture
+def fake_chat(client, monkeypatch):
+    monkeypatch.setattr(api.main, "runner", FakeRunner())
+    return client
+
+
+def test_chat_returns_answer_specialist_and_tools(fake_chat):
+    body = fake_chat.post("/api/chat", json={"message": "Should we approve SO-026777?"}).json()
+    assert body["answer"] == "Decision: HOLD."
+    assert body["specialists"] == ["credit_agent"]
+    assert body["tools_used"][0]["tool"] == "review_order" and body["tools_used"][0]["ok"] is True
+    assert body["session_id"]
+
+
+def test_chat_keeps_the_same_conversation(fake_chat):
+    first = fake_chat.post("/api/chat", json={"message": "Hello"}).json()
+    second = fake_chat.post("/api/chat", json={"message": "And again", "session_id": first["session_id"]}).json()
+    assert second["session_id"] == first["session_id"]
+
+
+def test_empty_chat_message_is_refused(fake_chat):
+    assert fake_chat.post("/api/chat", json={"message": ""}).status_code == 422

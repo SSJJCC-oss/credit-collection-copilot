@@ -97,3 +97,16 @@ button.reject { background: var(--bad); }
 .letter { white-space: pre-wrap; background: #fafafa; border: 1px solid var(--line); padding: 14px; margin: 8px 0 14px;
           font-family: inherit; line-height: 1.5; }
 .meta { color: var(--muted); font-size: 13px; }
+
+/* ---- Step 6.4: chat ---- */
+.suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+button.suggestion { background: #e8f0f8; color: var(--blue); font-weight: normal; border: 1px solid #c9dbee; }
+.chat-log { display: flex; flex-direction: column; gap: 10px; min-height: 300px; max-height: 60vh; overflow-y: auto;
+            border: 1px solid var(--line); background: #fafafa; padding: 14px; margin-bottom: 12px; }
+.msg { max-width: 80%; padding: 10px 14px; line-height: 1.5; }
+.msg.user { align-self: flex-end; background: var(--blue); color: #fff; }
+.msg.bot { align-self: flex-start; background: var(--tile); border: 1px solid var(--line); }
+.msg.error { align-self: flex-start; background: #fdecea; color: var(--bad); }
+.msg ul { margin: 4px 0; padding-left: 20px; }
+.msg .used { margin-top: 8px; color: var(--muted); font-size: 12px; }
+button:disabled { opacity: 0.5; cursor: wait; }
