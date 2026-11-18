@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Credit & Collections Copilot</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Left sidebar, styled like BillCRM's -->
+  <nav class="sidebar">
+    <div class="logo">AI</div>
+    <a href="#briefing" class="nav-link active" data-section="briefing">Briefing</a>
+    <a href="#orders" class="nav-link" data-section="orders">Orders</a>
+    <a href="#reminders" class="nav-link" data-section="reminders">Reminders</a>
+    <a href="#chat" class="nav-link" data-section="chat">Ask</a>
+  </nav>
+
+  <main class="content">
+    <header class="topbar">
+      <h1>Credit &amp; Collections Copilot</h1>
+      <div class="status">
+        <span id="as-of">Loading…</span>
+        <span id="dry-run" class="badge"></span>
+      </div>
+    </header>
+
+    <!-- Feature 1: daily briefing -->
+    <section id="briefing" class="section">
+      <div class="cards">
+        <div class="card"><div class="label">Total owed</div><div class="value" id="total-owed">–</div></div>
+        <div class="card"><div class="label">Overdue</div><div class="value warn" id="total-overdue">–</div></div>
+        <div class="card"><div class="label">Shops over credit limit</div><div class="value bad" id="over-limit">–</div></div>
+        <div class="card"><div class="label">Uncleared cheques</div><div class="value" id="cheques">–</div></div>
+      </div>
+
+      <div class="panel">
+        <h2>Overdue by age</h2>
+        <div id="ageing" class="ageing"></div>
+      </div>
+
+      <div class="two-columns">
+        <div class="panel">
+          <h2>Top shops to chase</h2>
+          <table>
+            <thead><tr><th>Shop</th><th>City</th><th class="num">Overdue</th><th class="num">Worst bill</th></tr></thead>
+            <tbody id="chase-rows"></tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <h2>Shops going quiet</h2>
+          <table>
+            <thead><tr><th>Shop</th><th class="num">Usually every</th><th class="num">Silent</th><th class="num">At risk / month</th></tr></thead>
+            <tbody id="quiet-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filled in by the next steps -->
+    <section id="orders" class="section hidden"><div class="panel">Orders awaiting approval: coming in step 6.3.</div></section>
+    <section id="reminders" class="section hidden"><div class="panel">Reminder approval queue: coming in step 6.3.</div></section>
+    <section id="chat" class="section hidden"><div class="panel">Ask the copilot: coming in step 6.4.</div></section>
+
+    <p id="error" class="error hidden"></p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+/* Colours chosen to match BillCRM's admin pages: dark navy sidebar, light grey page, white tiles. */
+:root {
+  --navy: #2c3e50;
+  --navy-dark: #22313f;
+  --blue: #2f6fae;
+  --page: #eeeeee;
+  --tile: #ffffff;
+  --text: #333333;
+  --muted: #777777;
+  --line: #e2e2e2;
+  --good: #1e8e3e;
+  --warn: #c77700;
+  --bad: #c62828;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; display: flex; min-height: 100vh; background: var(--page); color: var(--text);
+       font-family: Arial, Helvetica, sans-serif; font-size: 14px; }
+
+/* Sidebar */
+.sidebar { width: 110px; background: var(--navy); display: flex; flex-direction: column; padding-top: 16px; }
+.logo { width: 52px; height: 52px; margin: 0 auto 20px; border: 2px solid #fff; border-radius: 50%;
+        color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+.nav-link { color: #fff; text-decoration: none; padding: 16px 8px; text-align: center; font-weight: bold;
+            border-left: 4px solid transparent; }
+.nav-link:hover { background: var(--navy-dark); }
+.nav-link.active { background: var(--navy-dark); border-left-color: #38c172; }
+
+/* Main area */
+.content { flex: 1; padding: 20px 28px; min-width: 0; }
+.topbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+          border-bottom: 1px solid #d0d0d0; padding-bottom: 12px; margin-bottom: 20px; }
+h1 { color: var(--blue); font-weight: normal; font-size: 26px; margin: 0; }
+h2 { font-size: 16px; color: var(--navy); margin: 0 0 12px; }
+.status { display: flex; gap: 10px; align-items: center; color: var(--muted); }
+.badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #fff; background: var(--good); }
+.badge.live { background: var(--bad); }
+
+/* Number cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.card { background: var(--tile); border: 1px solid var(--line); padding: 18px; }
+.label { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+.value { font-size: 24px; font-weight: bold; color: var(--blue); }
+.value.warn { color: var(--warn); }
+.value.bad { color: var(--bad); }
+
+/* Panels and tables */
+.panel { background: var(--tile); border: 1px solid var(--line); padding: 18px; margin-bottom: 20px; overflow-x: auto; }
+.two-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: normal; font-size: 13px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Ageing bars */
+.ageing { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: grid; grid-template-columns: 90px 1fr 170px; gap: 12px; align-items: center; }
+.bar-track { background: #f2f2f2; height: 20px; }
+.bar { height: 100%; background: var(--blue); }
+.bar.b-31-60 { background: #e0a100; }
+.bar.b-61-90 { background: var(--warn); }
+.bar.b-90 { background: var(--bad); }
+.bar.b-not_due { background: #8fb3d9; }
+
+.hidden { display: none; }
+.error { color: var(--bad); font-weight: bold; }

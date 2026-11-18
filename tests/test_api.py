@@ -63,3 +63,10 @@ def test_decision_needs_a_person(client):
     assert missing.status_code == 422                         # decided_by is required
     blank = client.post(f"/api/drafts/{draft['id']}/decision", json={"approve": True, "decided_by": " "})
     assert blank.status_code == 400
+
+def test_dashboard_page_is_served(client):
+    page = client.get("/")
+    assert page.status_code == 200
+    assert "Credit &amp; Collections Copilot" in page.text
+    assert client.get("/app.js").status_code == 200
+    assert client.get("/api/health").json()["status"] == "ok"    # API routes still work

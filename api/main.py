@@ -148,3 +148,13 @@ def audit(limit: int = 50) -> dict:
     entries = recent_audit(store, limit)
     store.close()
     return {"count": len(entries), "entries": entries}
+
+# ---------------------------------------------------------------------- the dashboard page
+# Serve the files in web/ (index.html, styles.css, app.js) at http://127.0.0.1:8001/
+# This line must stay LAST, so the /api/... routes above are matched first.
+from pathlib import Path  # noqa: E402
+
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
