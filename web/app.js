@@ -70,6 +70,132 @@ async function loadQuietShops() {
     </tr>`).join("");
 }
 
+// Send data to the API (POST) and return the JSON answer, or throw the API's error message.
+async function postJSON(path, data) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const body = await response.json();
+  if (!response.ok) {
+    const detail = Array.isArray(body.detail) ? "Please fill in all required fields." : body.detail;
+    throw new Error(detail || `Request to ${path} failed (${response.status})`);
+  }
+  return body;
+}
+
+// ---------------------------------------------------------------- Orders (feature 2)
+
+async function loadOrders() {
+  const data = await getJSON("/api/orders/pending");
+  const count = decision => data.orders.filter(o => o.decision === decision).length;
+  document.getElementById("orders-total").textContent = data.count;
+  document.getElementById("orders-approve").textContent = count("APPROVE");
+  document.getElementById("orders-review").textContent = count("REVIEW");
+  document.getElementById("orders-hold").textContent = count("HOLD");
+
+  // Each order is two rows: the order itself, and a hidden row with its reasons.
+  document.getElementById("order-rows").innerHTML = data.orders.map((o, i) => `
+    <tr class="clickable" data-index="${i}">
+      <td>${escapeHtml(o.order_no)}</td>
+      <td>${escapeHtml(o.customer_name)}</td>
+      <td>${escapeHtml(o.city)}</td>
+      <td>${escapeHtml(o.order_date)}</td>
+      <td class="num">${money(o.total)}</td>
+      <td><span class="pill ${o.decision}">${o.decision}</span></td>
+    </tr>
+    <tr class="reasons hidden" id="reasons-${i}">
+      <td colspan="6"><ul>${o.reasons.map(r => `<li>${escapeHtml(r.detail)}</li>`).join("")}</ul></td>
+    </tr>`).join("");
+
+  document.querySelectorAll("#order-rows tr.clickable").forEach(row =>
+    row.addEventListener("click", () => {
+      document.getElementById(`reasons-${row.dataset.index}`).classList.toggle("hidden");
+      row.classList.toggle("selected");
+    }));
+}
+
+// ------------------------------------------------------------- Reminders (feature 3)
+
+let selectedDraftId = null;
+
+async function loadDrafts() {
+  const status = document.getElementById("draft-filter").value;
+  const data = await getJSON(`/api/drafts?status=${status}`);
+  const rows = document.getElementById("draft-rows");
+  if (data.count === 0) {
+    rows.innerHTML = `<tr><td colspan="6" class="hint">No reminders here.</td></tr>`;
+    return;
+  }
+  rows.innerHTML = data.drafts.map(d => `
+    <tr class="clickable ${d.id === selectedDraftId ? "selected" : ""}" data-id="${d.id}">
+      <td>${d.id}</td>
+      <td>${escapeHtml(d.customer_name)}</td>
+      <td>${d.language.toUpperCase()}</td>
+      <td>${escapeHtml(d.channel)}</td>
+      <td class="num">${money(d.amount_due)}</td>
+      <td><span class="pill ${d.status}">${d.status}</span></td>
+    </tr>`).join("");
+  rows.querySelectorAll("tr.clickable").forEach(row =>
+    row.addEventListener("click", () => showDraft(Number(row.dataset.id))));
+}
+
+async function showDraft(id) {
+  selectedDraftId = id;
+  const d = await getJSON(`/api/drafts/${id}`);
+  const decided = d.status !== "draft"
+    ? `<p class="meta">Decided by <b>${escapeHtml(d.decided_by)}</b> at ${escapeHtml(d.decided_at)}: <span class="pill ${d.status}">${d.status}</span>${d.decision_note ? ` · "${escapeHtml(d.decision_note)}"` : ""}</p>`
+    : "";
+  document.getElementById("draft-view").innerHTML = `
+    <p class="meta">#${d.id} · ${escapeHtml(d.customer_name)} · ${escapeHtml(d.channel)} to ${escapeHtml(d.recipient || "-")} ·
+       ${d.invoice_refs.length} invoice(s) · ${money(d.amount_due)}</p>
+    <p><b>${escapeHtml(d.subject)}</b></p>
+    <div class="letter" dir="auto">${escapeHtml(d.body)}</div>
+    ${decided}`;
+  document.getElementById("decision-box").classList.toggle("hidden", d.status !== "draft");
+  document.getElementById("decision-message").textContent = "";
+  await loadDrafts();
+}
+
+async function createDraft(event) {
+  event.preventDefault();                       // stop the browser reloading the page
+  const message = document.getElementById("draft-message");
+  try {
+    const d = await postJSON("/api/drafts", {
+      customer_name: document.getElementById("draft-shop").value,
+      language: document.getElementById("draft-language").value,
+    });
+    message.textContent = d.already_existed
+      ? `A reminder for ${d.customer_name} is already waiting (#${d.id}).`
+      : `Draft #${d.id} created for ${d.customer_name}. It has NOT been sent.`;
+    document.getElementById("draft-filter").value = "draft";
+    await showDraft(d.id);
+  } catch (error) {
+    message.textContent = error.message;
+  }
+}
+
+async function decide(approve) {
+  const name = document.getElementById("decided-by").value;
+  const message = document.getElementById("decision-message");
+  try {
+    const d = await postJSON(`/api/drafts/${selectedDraftId}/decision`, {
+      approve: approve,
+      decided_by: name,
+      note: document.getElementById("decision-note").value,
+    });
+    try { localStorage.setItem("approverName", name); } catch (e) { /* storage blocked: ignore */ }
+    document.getElementById("decision-note").value = "";
+    await showDraft(d.id);
+    message.textContent = d.status === "logged"
+      ? "Approved. DRY RUN is on, so it was logged and NOT sent."
+      : `Reminder ${d.status}.`;
+  } catch (error) {
+    message.textContent = error.message;
+  }
+}
+
 // Sidebar: show one section at a time, based on the part of the address after '#'.
 function showSection() {
   const name = (location.hash || "#briefing").slice(1);
@@ -80,9 +206,14 @@ function showSection() {
 async function start() {
   window.addEventListener("hashchange", showSection);
   showSection();
+  document.getElementById("draft-form").addEventListener("submit", createDraft);
+  document.getElementById("draft-filter").addEventListener("change", loadDrafts);
+  document.getElementById("approve-btn").addEventListener("click", () => decide(true));
+  document.getElementById("reject-btn").addEventListener("click", () => decide(false));
+  try { document.getElementById("decided-by").value = localStorage.getItem("approverName") || ""; } catch (e) { /* ignore */ }
   try {
     await loadStatus();
-    await Promise.all([loadBriefing(), loadQuietShops()]);
+    await Promise.all([loadBriefing(), loadQuietShops(), loadOrders(), loadDrafts()]);
   } catch (error) {
     const box = document.getElementById("error");
     box.textContent = `Could not load the dashboard: ${error.message}`;

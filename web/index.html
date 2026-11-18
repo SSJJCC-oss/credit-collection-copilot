@@ -58,8 +58,72 @@
     </section>
 
     <!-- Filled in by the next steps -->
-    <section id="orders" class="section hidden"><div class="panel">Orders awaiting approval: coming in step 6.3.</div></section>
-    <section id="reminders" class="section hidden"><div class="panel">Reminder approval queue: coming in step 6.3.</div></section>
+    <!-- Feature 2: orders waiting for approval -->
+    <section id="orders" class="section hidden">
+      <div class="cards">
+        <div class="card"><div class="label">Waiting for a decision</div><div class="value" id="orders-total">–</div></div>
+        <div class="card"><div class="label">Recommended APPROVE</div><div class="value good" id="orders-approve">–</div></div>
+        <div class="card"><div class="label">Recommended REVIEW</div><div class="value warn" id="orders-review">–</div></div>
+        <div class="card"><div class="label">Recommended HOLD</div><div class="value bad" id="orders-hold">–</div></div>
+      </div>
+      <div class="panel">
+        <h2>Orders awaiting approval</h2>
+        <p class="hint">Click an order to see why. The final decision is made in the billing system.</p>
+        <table>
+          <thead><tr><th>Order</th><th>Shop</th><th>City</th><th>Date</th><th class="num">Total</th><th>Recommendation</th></tr></thead>
+          <tbody id="order-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Feature 3: reminder drafts and human approval -->
+    <section id="reminders" class="section hidden">
+      <div class="two-columns">
+        <div class="panel">
+          <h2>Draft a payment reminder</h2>
+          <form id="draft-form" class="form-row">
+            <input id="draft-shop" placeholder="Shop name, e.g. Golden Palm Catering" required>
+            <select id="draft-language">
+              <option value="">Shop's preferred language</option>
+              <option value="en">English</option>
+              <option value="ar">Arabic</option>
+            </select>
+            <button type="submit">Create draft</button>
+          </form>
+          <p id="draft-message" class="hint"></p>
+
+          <h2>Approval queue</h2>
+          <div class="form-row">
+            <select id="draft-filter">
+              <option value="draft">Waiting for approval</option>
+              <option value="logged">Approved (logged, not sent)</option>
+              <option value="rejected">Rejected</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Shop</th><th>Lang</th><th>Channel</th><th class="num">Amount</th><th>Status</th></tr></thead>
+            <tbody id="draft-rows"></tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <h2>Reminder</h2>
+          <div id="draft-view" class="hint">Select a reminder from the queue to read it.</div>
+          <div id="decision-box" class="hidden">
+            <div class="form-row">
+              <input id="decided-by" placeholder="Your name (required)">
+              <input id="decision-note" placeholder="Note (optional)">
+            </div>
+            <div class="form-row">
+              <button id="approve-btn" class="approve">Approve</button>
+              <button id="reject-btn" class="reject">Reject</button>
+            </div>
+          </div>
+          <p id="decision-message" class="hint"></p>
+        </div>
+      </div>
+    </section>
     <section id="chat" class="section hidden"><div class="panel">Ask the copilot: coming in step 6.4.</div></section>
 
     <p id="error" class="error hidden"></p>

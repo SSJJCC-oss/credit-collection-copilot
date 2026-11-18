@@ -64,3 +64,36 @@ th { color: var(--muted); font-weight: normal; font-size: 13px; }
 
 .hidden { display: none; }
 .error { color: var(--bad); font-weight: bold; }
+
+/* ---- Step 6.3: orders and reminders ---- */
+.value.good { color: var(--good); }
+.hint { color: var(--muted); margin: 0 0 12px; }
+
+/* Decision badges */
+.pill { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #fff; }
+.pill.APPROVE { background: var(--good); }
+.pill.REVIEW { background: var(--warn); }
+.pill.HOLD { background: var(--bad); }
+.pill.draft { background: var(--blue); }
+.pill.logged { background: var(--good); }
+.pill.approved { background: var(--good); }
+.pill.rejected { background: var(--muted); }
+
+/* Clickable rows and the reasons row underneath */
+tr.clickable { cursor: pointer; }
+tr.clickable:hover, tr.selected { background: #f4f8fc; }
+tr.reasons td { background: #fafafa; color: var(--text); }
+tr.reasons ul { margin: 4px 0; padding-left: 20px; }
+
+/* Forms and buttons */
+.form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+input, select { padding: 8px; border: 1px solid #ccc; font: inherit; min-width: 0; flex: 1; }
+button { padding: 8px 16px; border: none; background: var(--blue); color: #fff; font: inherit; font-weight: bold; cursor: pointer; }
+button:hover { opacity: 0.9; }
+button.approve { background: var(--good); }
+button.reject { background: var(--bad); }
+
+/* The reminder text */
+.letter { white-space: pre-wrap; background: #fafafa; border: 1px solid var(--line); padding: 14px; margin: 8px 0 14px;
+          font-family: inherit; line-height: 1.5; }
+.meta { color: var(--muted); font-size: 13px; }
