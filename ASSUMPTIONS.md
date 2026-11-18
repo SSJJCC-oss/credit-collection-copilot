@@ -110,3 +110,6 @@ system's own tables keep their original structure.
 
 **C5. The AI model name is a setting in `.env`.** 🔜
 - Automatic retries on 429 (rate limit) and 503 (busy) errors.  
+
+**C6. The API has no authentication yet (demo only).** 🔜
+- It listens only on the local computer. Before real use, approvals must come from a logged-in user (ideally the billing system's own login), not a typed name.
