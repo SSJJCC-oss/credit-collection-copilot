@@ -23,7 +23,8 @@ class Settings:
     vat_rate: float
     dry_run: bool
     max_query_rows: int
-    gemini_model: str                                                    # NEW
+    gemini_model: str
+    demo_password: str                                                    # NEW
 
 
 def load_settings() -> Settings:
@@ -37,4 +38,5 @@ def load_settings() -> Settings:
         dry_run=_as_bool(os.getenv("DRY_RUN", "true")),
         max_query_rows=int(os.getenv("MAX_QUERY_ROWS", "200")),
         gemini_model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),      # NEW
+        demo_password=os.getenv("DEMO_PASSWORD", ""),
     )

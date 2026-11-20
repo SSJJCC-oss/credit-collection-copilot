@@ -4,9 +4,11 @@ Run from the project folder:
     uvicorn api.main:app --reload --port 8001
 Then open http://127.0.0.1:8001/docs to see and try every endpoint.
 """
+import base64
 import os
+import secrets
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -25,6 +27,24 @@ app = FastAPI(
 allowed_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_methods=["GET", "POST"],
                    allow_headers=["*"])
+
+# If DEMO_PASSWORD is set (e.g. on Cloud Run), every page and API call needs it.
+# The browser shows its own login box; any username works, the password must match.
+@app.middleware("http")
+async def require_demo_password(request: Request, call_next):
+    password = load_settings().demo_password
+    if not password:                                   # no password set (e.g. on your laptop): open
+        return await call_next(request)
+    header = request.headers.get("authorization", "")
+    if header.startswith("Basic "):
+        try:
+            _, _, given = base64.b64decode(header[6:]).decode().partition(":")
+        except ValueError:
+            given = ""
+        if secrets.compare_digest(given.encode(), password.encode()):
+            return await call_next(request)
+    return Response("Login required", status_code=401,
+                    headers={"WWW-Authenticate": 'Basic realm="Credit Copilot demo"'})
 
 
 # ------------------------------------------------------------------------ request bodies

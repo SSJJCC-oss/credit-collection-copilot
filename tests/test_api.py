@@ -10,6 +10,7 @@ def client(tmp_path, monkeypatch):
     """A test client whose copilot store is a temporary file, not the real data/copilot.db."""
     monkeypatch.setenv("COPILOT_DB", str(tmp_path / "copilot_test.db"))
     monkeypatch.setenv("DRY_RUN", "true")
+    monkeypatch.delenv("DEMO_PASSWORD", raising=False)
     return TestClient(app)
 
 
@@ -116,3 +117,17 @@ def test_chat_keeps_the_same_conversation(fake_chat):
 
 def test_empty_chat_message_is_refused(fake_chat):
     assert fake_chat.post("/api/chat", json={"message": ""}).status_code == 422
+
+# ---- demo password (used when the app is online) ----
+
+def test_no_password_means_open(client):
+    assert client.get("/api/health").status_code == 200
+
+
+def test_password_protects_pages_and_api(client, monkeypatch):
+    monkeypatch.setenv("DEMO_PASSWORD", "letmein")
+    assert client.get("/api/health").status_code == 401
+    assert client.get("/").status_code == 401
+    assert client.get("/api/health", auth=("demo", "wrong")).status_code == 401
+    assert client.get("/api/health", auth=("demo", "letmein")).status_code == 200
+    assert client.get("/", auth=("anyone", "letmein")).status_code == 200
